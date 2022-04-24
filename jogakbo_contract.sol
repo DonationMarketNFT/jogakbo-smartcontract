@@ -7,7 +7,8 @@ contract Jogakbo is KIP17Token('DonationMarket','DM' ){
 
     struct Campaign {
         address payable campaign_address; // 기부금이 모일 주소
-        string IPFS_uri; // IPFS_uri
+        uint256 campaign_ID; // DB에서 받을 캠페인 아이디
+        string IPFS_url; // IPFS_url
         uint256 target_amount; // 목표 모금액
         uint256 current_amount; // 현재 모금액
         bool campaign_state;    // 캠페인 상태(모금중, 모금끝)
@@ -26,21 +27,20 @@ contract Jogakbo is KIP17Token('DonationMarket','DM' ){
     // 캠페인 등록
    
     function createCampaign(
-        address payable _campaign_address, string memory _IPFS_uri, uint256 _target_amount // 캠페인 생성 시 모금될 주소와 IPFS_uri와 목표 금액을 인자로 받음
+        address payable _campaign_address, string memory _IPFS_url, uint256 _target_amount, uint256 _campaign_ID // 캠페인 생성 시 모금될 주소와 IPFS_uri와 목표 금액을 인자로 받음
     ) public {
 
         // 입력받은 캠페인 인스턴스 생성
         Campaign memory newCampaign = Campaign({
             campaign_address: _campaign_address,
-            IPFS_uri: _IPFS_uri,
+            campaign_ID: _campaign_ID,
+            IPFS_url: _IPFS_url,
             target_amount: _target_amount,
             current_amount: 0,
             campaign_state : true,
             campaign_refund_state : false 
         });
 
-        // 새로운 캠페인 아이디 삽입
-        campaignId[msg.sender].push(campaignList.length);
         // 배열에 새로운 캠페인를 삽입
         campaignList.push(newCampaign);
         CampaignNumber++;
@@ -50,15 +50,25 @@ contract Jogakbo is KIP17Token('DonationMarket','DM' ){
     function _sendDonationNFT (
         uint256 tokenId, 
         string memory tokenURI,
-        string memory tokenName, 
-        string memory tokenDescription, 
+        string memory tokenIPFS,
+        string memory tokenOwnerName,
+        string memory tokenAgencyUrl,
         string memory tokenDate,
         string memory tokenNumber
     ) private returns (bool) {
-        KIP17MetadataMintable.mintWithTokenURI(msg.sender, tokenId, tokenURI, tokenName, tokenDescription, "", "", tokenDate, tokenNumber);
+        KIP17MetadataMintable.mintWithTokenURI(
+            msg.sender, 
+            tokenId, 
+            tokenURI, 
+            tokenIPFS, 
+            tokenOwnerName, 
+            tokenAgencyUrl, 
+            tokenDate, 
+            tokenNumber
+            );
         return true;
     } // NFT 발행 
-    
+
 
     // 캠페인 존재여부 확인하는 함수
     function hasCampaign(uint256 _campaignId) private view returns (bool) { //private로 내부 함수에서만 호출 
@@ -91,7 +101,8 @@ contract Jogakbo is KIP17Token('DonationMarket','DM' ){
         tokenId++;
 
         require(
-        _sendDonationNFT(tokenId, " ", " ", " ", "2022-02-21", "1")
+        _sendDonationNFT(
+            tokenId, "tokenURI", campaignList[_campaignId].IPFS_url, "name", "tokenAgencyUrl", "2022-02-21", "1")
         ,"Donation NFT: minting failed");
     }
 
