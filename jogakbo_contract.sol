@@ -126,8 +126,7 @@ contract Jogakbo is KIP17Token('DonationMarket','DM' ){
 
         uint256 refundAmount = campaignList[_campaignId].campaign_fundingAmountList[_userAddr];
 
-        (bool success, ) = _to.call.value(refundAmount)("");  // refund 
-        require(success, "Failed to send coin");
+        _to.call.value(refundAmount)("");
 
         campaignList[_campaignId].campaign_fundingAmountList[_userAddr] = 0;
         campaignList[_campaignId].current_amount -= refundAmount;
