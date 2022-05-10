@@ -46,7 +46,7 @@ contract Jogakbo is KIP17Token('DonationMarket','DM' ){
         CampaignNumber++;
     }
 
-
+/*  delete this function
     function _sendDonationNFT (
         uint256 tokenId, 
         string memory tokenURI,
@@ -68,7 +68,7 @@ contract Jogakbo is KIP17Token('DonationMarket','DM' ){
             );
         return true;
     } // NFT 발행 
-
+*/
 
     // 캠페인 존재여부 확인하는 함수
     function hasCampaign(uint256 _campaignId) private view returns (bool) { //private로 내부 함수에서만 호출 
@@ -97,6 +97,7 @@ contract Jogakbo is KIP17Token('DonationMarket','DM' ){
         campaignList[_campaignId].current_amount += _amount;
         campaignList[_campaignId].campaign_fundingAmountList[msg.sender] += _amount;
 
+        /* delete this code 
         // NFT 발행
         tokenId++;
 
@@ -104,6 +105,7 @@ contract Jogakbo is KIP17Token('DonationMarket','DM' ){
         _sendDonationNFT(
             tokenId, "tokenURI", campaignList[_campaignId].IPFS_url, "name", "tokenAgencyUrl", "2022-02-21", "1")
         ,"Donation NFT: minting failed");
+        */
     }
 
     function refundState(uint256 _campaignId) external view returns (bool) {
