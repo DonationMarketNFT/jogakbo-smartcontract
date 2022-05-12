@@ -13,6 +13,7 @@ contract Jogakbo is KIP17Token('DonationMarket','DM' ){
         uint256 current_amount; // 현재 모금액
         bool campaign_state;    // 캠페인 상태(모금중, 모금끝)
         bool campaign_refund_state; // 캠페인 환불 상태 (환불 불가, 환불 가능)
+        bool campaign_send_state; // 모금 끝나고 기부금 전송
         mapping(address => uint256) campaign_fundingAmountList; // 캠페인에 모금한 사람과 그 funding amount List
     }
 
@@ -38,7 +39,8 @@ contract Jogakbo is KIP17Token('DonationMarket','DM' ){
             target_amount: _target_amount,
             current_amount: 0,
             campaign_state : true,
-            campaign_refund_state : false 
+            campaign_refund_state : false,
+            campaign_send_state : false 
         });
 
         // 배열에 새로운 캠페인를 삽입
@@ -46,29 +48,6 @@ contract Jogakbo is KIP17Token('DonationMarket','DM' ){
         CampaignNumber++;
     }
 
-/*  delete this function
-    function _sendDonationNFT (
-        uint256 tokenId, 
-        string memory tokenURI,
-        string memory tokenIPFS,
-        string memory tokenOwnerName,
-        string memory tokenAgencyUrl,
-        string memory tokenDate,
-        string memory tokenNumber
-    ) private returns (bool) {
-        KIP17MetadataMintable.mintWithTokenURI(
-            msg.sender, 
-            tokenId, 
-            tokenURI, 
-            tokenIPFS, 
-            tokenOwnerName, 
-            tokenAgencyUrl, 
-            tokenDate, 
-            tokenNumber
-            );
-        return true;
-    } // NFT 발행 
-*/
 
     // 캠페인 존재여부 확인하는 함수
     function hasCampaign(uint256 _campaignId) private view returns (bool) { //private로 내부 함수에서만 호출 
@@ -76,6 +55,25 @@ contract Jogakbo is KIP17Token('DonationMarket','DM' ){
             return true;
         }
         return false;
+    }
+
+    function SendState(uint256 _campaignId) private view returns (bool) {
+        return campaignList[_campaignId].campaign_send_state;
+    } 
+
+    function setStateToSend(uint256 _campaignId) private {  // 모금 끝 기부금 전송하기 위해 버튼 활성화
+        campaignList[_campaignId].campaign_state = false;
+        campaignList[_campaignId].campaign_send_state = true;
+    }
+
+    // 기부금 전송
+    function sendDonation (uint256 _campaignId) private {
+        require(campaignList[_campaignId].campaign_state == false, "아직 모금 중인 캠페인입니다.");
+
+        //campaign_address = _campaign_address;
+        uint256 donationAmount = campaignList[_campaignId].current_amount;
+
+        campaignList[_campaignId].campaign_address.transfer(donationAmount);
     }
 
     // 기부
@@ -96,16 +94,13 @@ contract Jogakbo is KIP17Token('DonationMarket','DM' ){
         // 캠페인에 현재 기부금액 업데이트
         campaignList[_campaignId].current_amount += _amount;
         campaignList[_campaignId].campaign_fundingAmountList[msg.sender] += _amount;
+        
+        // 기부 목표 금액과 현재 모금액 확인. 모금액이 목표금액보다 크거나 같으면, 상태 변경
+        if (campaignList[_campaignId].current_amount >= campaignList[_campaignId].target_amount) {
+            setStateToSend(_campaignId);
+            sendDonation(_campaignId);
+        }
 
-        /* delete this code 
-        // NFT 발행
-        tokenId++;
-
-        require(
-        _sendDonationNFT(
-            tokenId, "tokenURI", campaignList[_campaignId].IPFS_url, "name", "tokenAgencyUrl", "2022-02-21", "1")
-        ,"Donation NFT: minting failed");
-        */
     }
 
     function refundState(uint256 _campaignId) external view returns (bool) {
@@ -128,10 +123,11 @@ contract Jogakbo is KIP17Token('DonationMarket','DM' ){
 
         uint256 refundAmount = campaignList[_campaignId].campaign_fundingAmountList[_userAddr];
 
-        _to.call.value(refundAmount)("");
-
+        _to.call.value(refundAmount)("");  
         campaignList[_campaignId].campaign_fundingAmountList[_userAddr] = 0;
         campaignList[_campaignId].current_amount -= refundAmount;
     }
+
+    
  
 }
