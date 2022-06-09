@@ -8,7 +8,7 @@ contract Jogakbo is KIP17Token('DonationMarket','DM' ){
     struct Campaign {
         address payable campaign_address; // 기부금이 모일 주소
         uint256 campaign_ID; // DB에서 받을 캠페인 아이디
-        string IPFS_url; // IPFS_url
+       // string IPFS_url; // IPFS_url
         uint256 target_amount; // 목표 모금액
         uint256 current_amount; // 현재 모금액
         bool campaign_state;    // 캠페인 상태(모금중, 모금끝)
@@ -27,14 +27,14 @@ contract Jogakbo is KIP17Token('DonationMarket','DM' ){
     // 캠페인 등록
    
     function createCampaign(
-        address payable _campaign_address, string memory _IPFS_url, uint256 _target_amount, uint256 _campaign_ID // 캠페인 생성 시 모금될 주소와 IPFS_uri와 목표 금액을 인자로 받음
+        address payable _campaign_address, uint256 _target_amount, uint256 _campaign_ID // 캠페인 생성 시 모금될 주소와 IPFS_uri와 목표 금액을 인자로 받음
     ) public {
 
         // 입력받은 캠페인 인스턴스 생성
         Campaign memory newCampaign = Campaign({
             campaign_address: _campaign_address,
             campaign_ID: _campaign_ID,
-            IPFS_url: _IPFS_url,
+           // IPFS_url: _IPFS_url,
             target_amount: _target_amount,
             current_amount: 0,
             campaign_state : true,
